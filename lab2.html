@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+ <meta name="description" content="This web page is a Cat Breed Selector 
+ App that lets users explore cat breed data from an API. Users can 
+ view breed names, filter by health issues, compare weights, and check intelligence and child-friendliness" />
+ <meta name="author" content="Sandip Khatri" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <meta name="keywords" content="HTML, CSS, JavaScript, Lab 2" />
+  <title>Cat Breed Selector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f7f7f7;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input, button {
+      margin: 5px;
+      padding: 5px 10px;
+    }
+
+    #results {
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+
+    label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Cat Breed Selector App</h1>
+
+  <!-- UI Buttons and Inputs -->
+  <button onclick="showAllNames()">All Names</button><br>
+
+  <input type="number" id="healthInput" placeholder="Health Issues" />
+  <button onclick="filterByHealthIssues()">Health Issues</button><br>
+
+  <input type="radio" id="imperial" name="unit" value="imperial" checked>
+  <label for="imperial">Imperial</label>
+
+  <input type="radio" id="metric" name="unit" value="metric">
+  <label for="metric">Metric</label>
+
+  <button onclick="showWeights()">Weight</button><br>
+
+  <button onclick="showIntelligenceFriendly()">Intelligence - Friendly</button><br>
+
+  <button onclick="showAverageIntelligence()">Average Intelligence</button><br>
+
+  <button onclick="showChildFriendlyIntelligence()">Average Intelligence for Child Friendly = 4</button>
+
+  <!-- Output box -->
+  <div id="results"><i>&lt;-- All Results should be displayed here --&gt;</i></div>
+
+  <script>
+    // Array to store cat breed data
+    let breeds = [];
+
+    // Load API data on page load
+    window.onload = function () {
+      fetch("https://api.thecatapi.com/v1/breeds")
+        .then(response => response.json())
+        .then(data => breeds = data)
+        .catch(error => {
+          document.getElementById("results").innerText = "Failed to load data.";
+          console.error(error);
+        });
+    };
+
+    // Display all cat breed names
+    function showAllNames() {
+      const names = breeds.map(cat => cat.name).join("\n");
+      document.getElementById("results").innerText =
+        `All names (total = ${breeds.length}):\n${names}`;
+    }
+
+    // Filter cats by health issue count
+    function filterByHealthIssues() {
+      const input = document.getElementById("healthInput").value;
+      const number = parseInt(input);
+
+      if (isNaN(number)) {
+        document.getElementById("results").innerText =
+          "Please enter a valid number for health issues.";
+        return;
+      }
+
+      const filtered = breeds.filter(cat => cat.health_issues === number);
+      const names = filtered.map(cat => cat.name).join("\n");
+
+      document.getElementById("results").innerText =
+        `Health Issues for ${number} (total = ${filtered.length}):\n${names}`;
+    }
+
+    // Show weights based on selected unit
+    function showWeights() {
+      const unit = document.querySelector('input[name="unit"]:checked').value;
+      const weightList = breeds.map(cat => `${cat.name}: ${cat.weight[unit]}`).join("\n");
+
+      document.getElementById("results").innerText =
+        `Weights in ${unit.charAt(0).toUpperCase() + unit.slice(1)}:\n${weightList}`;
+    }
+
+    // Show intelligence and child-friendliness for each breed
+    function showIntelligenceFriendly() {
+      const pairs = breeds.map(cat =>
+        `I: ${cat.intelligence} - F: ${cat.child_friendly}`
+      ).join("\n");
+
+      document.getElementById("results").innerText =
+        `Intelligence (I) - Child Friendly (F):\n${pairs}`;
+    }
+
+    // Show average intelligence of all cats
+    function showAverageIntelligence() {
+      const avg = average(breeds.map(cat => cat.intelligence));
+      document.getElementById("results").innerText =
+        `Average Intelligence : ${avg.toFixed(2)}`;
+    }
+
+    // FIXED: Display result on two lines exactly like lab format
+    function showChildFriendlyIntelligence() {
+      const filtered = breeds.filter(cat => cat.child_friendly === 4);
+
+      if (filtered.length === 0) {
+        document.getElementById("results").innerText =
+          "No cats found with Child Friendly = 4.";
+        return;
+      }
+
+      const avg = average(filtered.map(cat => cat.intelligence));
+      document.getElementById("results").innerText =
+        `Average Intelligence for Child Friendly = 4\nAverage Intelligence : ${avg.toFixed(2)}`;
+    }
+
+    // Helper: Calculate average
+    function average(arr) {
+      if (arr.length === 0) return 0;
+      return arr.reduce((sum, val) => sum + val, 0) / arr.length;
+    }
+  </script>
+
+</body>
+</html>
